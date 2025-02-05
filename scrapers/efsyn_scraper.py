@@ -21,8 +21,9 @@ def create_soup_from_url (url):
 def main():
 
     # List with queries
-    desired_queries = ['γυναικοκτονία', 'ανθρωποκτονία']
-
+    desired_queries = ['efood']
+    desired_date_start = '2021-08-01'
+    desired_date_end = '2021-11-01'
     link_results = []
     article_results = []
     title_results = []
@@ -30,72 +31,23 @@ def main():
     page = 0
     # Scrape for links in website database given the queries
     for query in desired_queries:
-        # Scraπe n pages
+        # Scrape n pages
         for i in range(8):
             page = page+i
                 
-            soup = create_soup_from_url(url='https://www.efsyn.gr/search?keywords=' + quote(query) + '&page=' + str(page))
+            soup = create_soup_from_url(url='https://www.efsyn.gr/search?keywords=' + quote(query) + '&created=' + desired_date_start + '&created_1=' + desired_date_end  + '&sort_by=created&page=' + str(page))
             
-            # Extracting number of link_results
-            search = soup.find_all('div', attrs={'class':'default-teaser triple'})
-            
-            # Search for articles within given tag:
-            for s in  search:
-                articles = soup.find_all('article', attrs={'class': 'default-teaser__article default-teaser__article'})
+            # Extracting results
+            article_area = soup.find('div',class_='split-content__main')
+
+            # Search for articles within given tag
+            articles = article_area.find_all('article')
                 
-                # Extract the link of each article:
-                for a in articles:
-                    links = "https://www.efsyn.gr" + a.contents[9].get('href')
-                    # print(links)  
-                    link_results.append(links)
-
-    # Scrape inside individual search results
-    for i in range(len(link_results)):
-        
-        soup = create_soup_from_url(url=link_results[i])
-
-        # Get article body and individual paragraphs within
-        article_body = soup.find('div', attrs={'class':'article__body'}).findAll('p', recursive=False)
-        
-        list_paragraphs = []
-        for paragraph in article_body:
-
-            list_paragraphs.append(paragraph.text)
-            complete_article = " ".join(list_paragraphs)
-            
-        article_results.append(complete_article)    
-        
-        # Get article title
-        try:
-            article_title = soup.find('section', attrs={'class':'article__main'}).find('h1', recursive=False)
-            title_results.append(article_title.text)
-        except:
-            article_title = 'N/A'
-            title_results.append(article_title)
-        
-    # Add articles and titles to pandas dataframe
-    articles_list = {'Article': article_results, 'Title': title_results, 'Date Scraped': datetime.now()}
-    articles_df = pd.DataFrame(data=articles_list)
-    cols = ['Article', 'Title', 'Date Scraped']
-    articles_df = articles_df[cols]
-    # Check for duplicates in df:
-    # articles_df = articles_df[articles_df.duplicated()]
-    # Drop duplicates in df:
-    articles_df = articles_df.drop_duplicates()
-    articles_df.to_csv(r'data/test_efsyn_articles.txt', index=False, sep=' ', header=False)
-
-
-    # A couple of development sanity checks:
-    print(link_results)
-    print(len(link_results))
-
-    # Check if link_results are unique:
-    if len(link_results) > len(set(link_results)):
-        print("not unique")
-    else:
-        print("unique") 
-
-    print(articles_df)
+            # Extract the link of each article:
+            for a in articles:
+                links = "https://www.efsyn.gr" + a.contents[9].get('href')
+                print(links)
+                link_results.append(links)
 
 if __name__ == "__main__":
     main()

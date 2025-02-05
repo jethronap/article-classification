@@ -15,7 +15,7 @@ This project was inspired by:
 
 ## Project set up:
 
-`cd` yourself to the reqs folder and then run `pip install requirements.txt`. 
+`cd` yourself to the reqs folder and then run `pip install -r requirements.txt`. 
 
 This should help you install all the available dependencies for this project. 
 

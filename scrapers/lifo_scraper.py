@@ -21,9 +21,11 @@ def create_soup_from_url (url):
 
 
 def main():
-    
+
+    print("test");
+
     # List with queries
-    desired_queries = ['γυναικοκτονία', 'ανθρωποκτονία']
+    desired_queries = ['efood']
 
     link_results = []
     article_results = []
@@ -33,7 +35,7 @@ def main():
     # Scrape for links in website database given the queries
     for query in desired_queries:
         # Scraπe n pages
-        for i in range(8):
+        for i in range(1):
             page = page+i
             
             soup = create_soup_from_url(url='https://www.lifo.gr/search?keyword=' + quote(query) + '&page=' + str(page))
@@ -58,7 +60,7 @@ def main():
 
         # Get article body and individual paragraphs within
         try:
-            article_body = soup.find('div', attrs={'class':'bodycontent'}).findAll('p', recursive=False)
+            article_body = soup.find('div', attrs={'class':'article__body'}).findAll('p', recursive=False)
         except:
             continue
 
@@ -72,7 +74,7 @@ def main():
         
         # Get article title
         try:
-            article_title = soup.find('div', attrs={'class':'v2_title_holder'}).find('h1', recursive=False)
+            article_title = soup.find('div', attrs={'class':'article__header'}).find('h1', recursive=False)
             title_results.append(article_title.text)
         except:
             article_title = 'N/A'
@@ -87,6 +89,7 @@ def main():
     # articles_df = articles_df[articles_df.duplicated()]
     # Drop duplicates in df:
     articles_df = articles_df.drop_duplicates()
+    print(articles_df);
     articles_df.to_csv(r'data/test_lifo_articles.txt', index=False, sep=' ', header=False)
 
 
