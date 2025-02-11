@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 
 import pandas as pd
 
-# Make an http query from url and create soup to parse
-def create_soup_from_url (url):
+
+# Make a http query from url and create soup to parse
+def create_soup_from_url(url):
     
     # To avoid 403-error using User-Agent
     req = urllib.request.Request(url, headers={'User-Agent' : "Magic Browser"})
@@ -31,6 +32,7 @@ def main():
     desired_queries = search_keywords.split(',')
 
     # Search scope
+    source = "lifo.gr"
     search_page_url = 'https://www.lifo.gr/search?keyword='
     page = 0
     end_page = 1
@@ -39,6 +41,8 @@ def main():
     link_results = []
     article_results = []
     title_results = []
+    date_results = []
+    link_results_processed = []
 
     # Scrape for links in website database given the queries
     for query in desired_queries:
@@ -72,6 +76,7 @@ def main():
         try:
             article_body = soup.find('div', attrs={'class':'article__body'}).findAll('p', recursive=False)
         except:
+            # Process article only if body is available
             continue
 
         list_paragraphs = []
@@ -81,20 +86,35 @@ def main():
             list_paragraphs.append(paragraph.text)
             complete_article = " ".join(list_paragraphs)
             
-        article_results.append(complete_article)    
+        article_results.append(complete_article)
+
+        # Get article url
+        link_results_processed.append(link_results[i])
         
         # Get article title
         try:
-            article_title = soup.find('header', attrs={'class':'article__header'}).find('h1', recursive=False)
+            article_title = soup.find('header', attrs={'class': 'article__header'}).find('h1', recursive=False)
             title_results.append(article_title.text)
         except:
             article_title = 'N/A'
             title_results.append(article_title)
+
+        # Get article date
+        try:
+            article_date = soup.find('header', attrs={'class': 'article__header'}).find('time')
+            # Custom process date to YY-M-D
+            date_raw = article_date['datetime']
+            date_processed = date_raw[: 10]
+            date_results.append(date_processed)
+        except:
+            article_date = 'N/A'
+            date_results.append(article_date)
         
     # Add data from articles in pandas dataframe
-    articles_list = {'Article': article_results, 'Title': title_results, 'Date Scraped': datetime.now()}
+    articles_list = {'Title': title_results, 'Source': source, 'Date': date_results, 'Link': link_results_processed,
+                     'Scraped': datetime.now(), 'Article': article_results}
     articles_df = pd.DataFrame(data=articles_list)
-    cols = ['Article', 'Title', 'Date Scraped']
+    cols = ['Title', 'Source', 'Date', 'Link', 'Scraped', 'Article']
     articles_df = articles_df[cols]
 
     # Check for duplicates in df:
